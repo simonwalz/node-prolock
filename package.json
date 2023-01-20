@@ -1,0 +1,15 @@
+{
+  "name": "lock",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "plock.js",
+  "scripts": {
+    "test": "tape *.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "tape": "^5.6.3"
+  }
+}
