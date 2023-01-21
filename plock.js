@@ -24,7 +24,9 @@ export function PromiseLock(global_options) {
 			options = {};
 		} else if (typeof options !== "object" ||
 				options === null) {
-			throw new Error("argument options invalid");
+			const e = new Error("Argument options invalid");
+			e.code = "EINVALID_OPTIONS";
+			throw e;
 		}
 		return {...global_options, ...options};
 	}
@@ -118,8 +120,8 @@ export function PromiseLock(global_options) {
 				resolve_cb();
 				if (timed_out) {
 					const e = new Error("Promise Lock:"+
-						" Already released by Timeout");
-					e.code = "ETIMEOUT_RELEASE_ALREADY";
+						" Already unlocked by Timeout");
+					e.code = "ETIMEOUT_UNLOCK";
 					throw e;
 				}
 			};

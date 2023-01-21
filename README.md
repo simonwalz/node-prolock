@@ -72,26 +72,6 @@ var unlock = await plock({
 unlock();
 ```
 
-and/or
-
-```js
-import { PromiseLock, TimeoutPromise } from "plock";
-
-var plock = PromiseLock();
-
-
-// in function
-try {
-	var result = await TimeoutPromise(plock(async ()=>{
-		// execution to lock
-		return "result";
-	}), 1000);
-} catch(err) {
-	// on Timeout
-	if (err.code === "ETIMEOUT") // ...
-}
-```
-
 ## Functions
 
 Usage: **plock**(callback: *function*, options: *object*) -> *Promise*
@@ -100,6 +80,8 @@ Usage: **plock**(options: *object*) -> *unlock function*
 
 Usage: **PromiseLock**(options: *object*) -> **plock** *function*
 
+### Parameter
+
 | Param | Type | Description |
 |---|----|---|
 | callback | `function` | Async Function for locked execution |
@@ -107,6 +89,15 @@ Usage: **PromiseLock**(options: *object*) -> **plock** *function*
 | options.timeout_lock | `number` | Timeout in ms for getting lock  |
 | options.release_lock | `number` | Timeout in ms for release of own execution to release lock |
 | options.no\_fail\_on\_timeout | `boolean` | Continue execution after failed getting lock |
+
+### Exceptions
+
+| Message | Code | Description |
+|---|----|---|
+| Argument options invalid | `EINVALID_OPTIONS` | Given argument options is invalid |
+| Promise Lock: Already unlocked by Timeout | `ETIMEOUT_UNLOCK` | Unlock function was called, but lock was already timed out |
+| Promise Timeout: RELEASE | `ETIMEOUT_RELEASE` | Timed out on execution. See param *release_lock* |
+| Promise Timeout: LOCK | `ETIMEOUT_LOCK` | Timed out on getting Lock. See param *timeout_lock* |
 
 
 ## License

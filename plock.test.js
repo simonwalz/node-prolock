@@ -251,7 +251,7 @@ test("Release Timeout of direct mode", async function(t) {
 	try {
 		unlock_1();
 	} catch (err) {
-		t.equal(err.code, "ETIMEOUT_RELEASE_ALREADY", "error message");
+		t.equal(err.code, "ETIMEOUT_UNLOCK", "error message");
 	}
 });
 
