@@ -95,10 +95,10 @@ Usage: **PromiseLock**(options: *object*) -> **prolock** *function*
 
 | Message | Code | Description |
 |---|----|---|
-| Argument options invalid | `EINVALID_OPTIONS` | Given argument options is invalid |
+| Promise Lock: Could not get lock (Timeout) | `ETIMEOUT_LOCK` | Timed out on getting Lock. See param *timeout_lock* |
+| Promise Lock: Timeout released lock | `ETIMEOUT_RELEASE` | Timed out on execution. See param *release_lock* |
+| Promise Lock: Argument options invalid | `EINVALID_OPTIONS` | Given argument options is invalid |
 | Promise Lock: Already unlocked by Timeout | `ETIMEOUT_UNLOCK` | Unlock function was called, but lock was already timed out |
-| Promise Timeout: RELEASE | `ETIMEOUT_RELEASE` | Timed out on execution. See param *release_lock* |
-| Promise Timeout: LOCK | `ETIMEOUT_LOCK` | Timed out on getting Lock. See param *timeout_lock* |
 
 
 ## License

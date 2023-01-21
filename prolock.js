@@ -2,6 +2,33 @@
 const debug = ()=>{};
 //const debug = console.debug.bind(console, "[debug]");
 
+class LockError extends Error {
+	constructor(timeout) {
+		super("Promise Lock: Could not get lock (Timeout)");
+		this.code = "ETIMEOUT_LOCK";
+		this.timeout = timeout;
+	}
+};
+class ReleaseError extends Error {
+	constructor(timeout) {
+		super("Promise Lock: Timeout released lock");
+		this.code = "ETIMEOUT_RELEASE";
+		this.timeout = timeout;
+	}
+};
+class UnlockError extends Error {
+	constructor() {
+		super("Promise Lock: Already unlocked by Timeout");
+		this.code = "ETIMEOUT_UNLOCK";
+	}
+};
+class InvalidOptionsError extends Error {
+	constructor() {
+		super("Promise Lock: Argument options invalid");
+		this.code = "EINVALID_OPTIONS";
+	}
+};
+
 /**
  * Promise Lock Initialisation
  *
@@ -24,9 +51,7 @@ export function PromiseLock(global_options) {
 			options = {};
 		} else if (typeof options !== "object" ||
 				options === null) {
-			const e = new Error("Argument options invalid");
-			e.code = "EINVALID_OPTIONS";
-			throw e;
+			throw new InvalidOptionsError;
 		}
 		return {...global_options, ...options};
 	}
@@ -36,7 +61,8 @@ export function PromiseLock(global_options) {
 			// do not do (we want to fail, if it is not a promise)
 			//return await Promise.resolve(callback());
 			var p = callback();
-			p = new TimeoutPromise(p, options.release_lock, "_RELEASE");
+			p = new TimeoutPromise(p, options.release_lock,
+					ReleaseError);
 			return await p;
 		} catch(err) {
 			throw err;
@@ -44,7 +70,8 @@ export function PromiseLock(global_options) {
 	}
 
 	async function get_lock_timeout(lock, options) {
-		lock = new TimeoutPromise(lock, options.timeout_lock, "_LOCK");
+		lock = new TimeoutPromise(lock, options.timeout_lock,
+					LockError);
 		try {
 			await lock;
 		} catch (err) {
@@ -52,8 +79,6 @@ export function PromiseLock(global_options) {
 			if (err.code === "ETIMEOUT_LOCK" &&
 					!options.no_fail_on_timeout) {
 				debug("lock: timed out");
-				err.message = "PromiseLock: " +
-						"Could not lock (Timeout)";
 				throw err;
 			}
 		}
@@ -111,7 +136,7 @@ export function PromiseLock(global_options) {
 		var callback = async ()=>{
 			// start execution. Start timeout for release lock:
 			p = new TimeoutPromise(p, options.release_lock,
-					"_RELEASE");
+					ReleaseError);
 			var timed_out = false;
 			p.catch(()=>{ timed_out = true; });
 			debug("unlock: init");
@@ -119,10 +144,7 @@ export function PromiseLock(global_options) {
 				debug("unlock: unlock");
 				resolve_cb();
 				if (timed_out) {
-					const e = new Error("Promise Lock:"+
-						" Already unlocked by Timeout");
-					e.code = "ETIMEOUT_UNLOCK";
-					throw e;
+					throw new UnlockError;
 				}
 			};
 		};
@@ -154,18 +176,26 @@ export function PromiseLock(global_options) {
 	};
 };
 
+class TimeoutPromiseError extends Error {
+	constructor(timeout) {
+		super("Promise Timeout");
+		this.code = "ETIMEOUT";
+		this.timeout = timeout;
+	}
+};
+
 /**
  * Timeout Promise
  *
  * @param {Promise|function} promise - Promise to add Timeout or callback to create promise
  * @param {number} timeout - Timeout in ms
- * @param {string} code - Text to add to Error Message
+ * @param {class} error - Error object to create on Timeout
  * @param {function} cancel - Callback to call on Timeout
  * @returns {Promise}
  * @example
  * var promise = new TimeoutPromise(new Promise.resolve(), 1000);
  */
-export function TimeoutPromise(promise, timeout, code, cancel) {
+export function TimeoutPromise(promise, timeout, error, cancel) {
 	if (typeof promise === "function") {
 		promise = new Promise(promise);
 	} else {
@@ -175,17 +205,14 @@ export function TimeoutPromise(promise, timeout, code, cancel) {
 	if (typeof timeout !== "number") {
 		return promise;
 	}
-	if (typeof code !== "string") {
-		code = "";
+	if (typeof error !== "function") {
+		error = TimeoutPromiseError;
 	}
 
 	return new Promise((resolve, reject)=>{
 		let t = setTimeout(()=>{
 			t = null;
-			const e = new Error('Promise Timeout' +
-					code.replace(/_/, " "));
-			e.code = 'ETIMEOUT'+code;
-			e.timeout = timeout;
+			const e = new error(timeout);
 			if (typeof cancel === "function")
 				cancel();
 			reject(e);
