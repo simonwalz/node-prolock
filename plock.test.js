@@ -1,7 +1,7 @@
 #!/bin/bash
 
-import { PromiseLock, TimeoutPromise } from "./plock.js";
 import test from "tape";
+import { PromiseLock, TimeoutPromise } from "./plock.js";
 
 function sleep(ms) {
 	return new Promise((resolve)=>{
@@ -19,6 +19,7 @@ test("Execution", async function(t) {
 		return true;
 	}));
 });
+
 test("Locking", async function(t) {
 	t.plan(6);
 
@@ -60,7 +61,7 @@ test("Argument check: callback", async function(t) {
 	try {
 		await plock("invalid");
 	} catch(err) {
-		t.equal(err.message, "callback is not a function", "error message");
+		t.equal(err.message, "argument options invalid", "error message");
 	}
 });
 test("Argument check: callback return", async function(t) {
@@ -88,14 +89,18 @@ test("direct lock", async function(t) {
 
 	var i=0;
 	(async ()=>{
-		var unlock = await plock(1000);
+		var unlock = await plock({
+			"timeout_lock": 1000
+		});
 		t.equal(++i, 1);
 		await sleep(100);
 		t.equal(++i, 2);
 		unlock();
 	})();
 	(async ()=>{
-		var unlock = await plock(2000);
+		var unlock = await plock({
+			"timeout_lock": 2000
+		});
 		t.equal(++i, 3);
 		await sleep(100);
 		t.equal(++i, 4);
@@ -116,16 +121,20 @@ test("direct lock with timeout", async function(t) {
 	t.plan(4);
 
 	var i=0;
+	var unlock_1;
 	var p1 = (async ()=>{
-		var unlock = await plock();
+		unlock_1 = await plock();
 		t.equal(++i, 1, "1");
+		// do not release here
 	})();
 	var p2 = (async ()=>{
 		try {
-			var unlock = await plock(100);
+			var unlock = await plock({
+				"timeout_lock": 100
+			});
 			t.fail();
 		} catch(err) {
-			t.equal(err.message, "Promise Timeout", "exception");
+			t.equal(err.code, "ETIMEOUT_LOCK", "exception");
 		}
 	})();
 	var p3 = (async ()=>{
@@ -147,15 +156,19 @@ test("direct lock with timeout", async function(t) {
 test("timeout lock, no timeout", async function(t) {
 	t.plan(1);
 
-	t.ok(await plock(async ()=>{ return true; }, 1000));
+	t.ok(await plock(async ()=>{ return true; }, {
+		"release_lock": 1000,
+	}));
 });
 test("timeout lock, timeout", async function(t) {
 	t.plan(1);
 
 	try {
-		await plock(()=>new Promise(()=>{}), 100);
+		await plock(()=>new Promise(()=>{}), {
+			"release_lock": 100
+		});
 	} catch (err) {
-		t.equal(err.message, "Promise Timeout");
+		t.equal(err.code, "ETIMEOUT_RELEASE", "exception");
 	}
 });
 
@@ -164,6 +177,10 @@ test("Base function, again", async function(t) {
 
 	t.ok(await plock(async ()=>{ return true; }));
 });
+
+
+
+/* Tests for Timeout Promise */
 
 test("Timeout Promise - No Timeout", async function(t) {
 	t.plan(1);

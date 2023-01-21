@@ -49,10 +49,12 @@ var plock = PromiseLock();
 var result = await plock(async ()=>{
 	// execution to lock
 	return "result";
-}, 1000);
+}, {
+	"timeout_lock": 1000,
+	"release_lock": 2000
+});
 ```
 
-(In this first example time timeout time is including the execution time)
 
 and/or:
 

@@ -1,5 +1,5 @@
 {
-  "name": "lock",
+  "name": "plock",
   "version": "1.0.0",
   "description": "Simple execution lock based on Promises.",
   "main": "plock.js",
