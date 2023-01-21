@@ -2,6 +2,14 @@
 const debug = ()=>{};
 //const debug = console.debug.bind(console, "[debug]");
 
+/**
+ * Promise Lock Initialisation
+ *
+ * @param {object} global_options - Configuration
+ * @returns {function} - plock function
+ * @example
+ * var plock = new PromiseLock();
+ */
 export function PromiseLock(global_options) {
 	//var requests = [];
 	var current = Promise.resolve();
@@ -50,7 +58,7 @@ export function PromiseLock(global_options) {
 		return true;
 	};
 
-	function call(callback, lock, options, extra) {
+	function wait_and_run(callback, lock, options, extra) {
 		var r = (async ()=>{
 			await get_lock_timeout(lock, options);
 			debug("return: got lock");
@@ -118,20 +126,43 @@ export function PromiseLock(global_options) {
 		};
 
 		// get lock, return callback und wait for unlock promise:
-		r = call(callback, current, options, ()=>p);
+		r = wait_and_run(callback, current, options, ()=>p);
 		return r;
 	}
 
-	return function(callback, options) {
+	/**
+	 * Promise Lock
+	 *
+	 * @param {function} [callback] - Async work function to lock
+	 * @param {object} options - Configuration
+	 * @returns {Promise}
+	 * @example
+	 * var result = await plock(async ()=>{
+	 *     // ...;
+	 *     return "result";
+	 * });
+	 */
+	return function plock(callback, options) {
 		if (typeof callback !== "function") {
 			return usage_direct_lock(callback);
 		}
 		options = parse_options(options);
 
-		return call(callback, current, options);
+		return wait_and_run(callback, current, options);
 	};
 };
 
+/**
+ * Timeout Promise
+ *
+ * @param {Promise|function} promise - Promise to add Timeout or callback to create promise
+ * @param {number} timeout - Timeout in ms
+ * @param {string} code - Text to add to Error Message
+ * @param {function} cancel - Callback to call on Timeout
+ * @returns {Promise}
+ * @example
+ * var promise = new TimeoutPromise(new Promise.resolve(), 1000);
+ */
 export function TimeoutPromise(promise, timeout, code, cancel) {
 	if (typeof promise === "function") {
 		promise = new Promise(promise);

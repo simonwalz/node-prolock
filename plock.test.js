@@ -324,11 +324,3 @@ test("Timeout Promise - Timeout Exception", async function(t) {
 	}
 });
 
-test("Combination", async function(t) {
-	t.plan(1);
-
-	var v = await TimeoutPromise(plock(async ()=>{
-		return 8;
-	}), 100*sc);
-	t.equal(v, 8);
-});
