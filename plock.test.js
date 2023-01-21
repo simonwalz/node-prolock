@@ -5,6 +5,7 @@ import { PromiseLock, TimeoutPromise } from "./plock.js";
 
 // scale sleep times:
 var sc = 0.02;
+//sc = 1;
 
 function sleep(ms) {
 	return new Promise((resolve)=>{
@@ -12,15 +13,18 @@ function sleep(ms) {
 	});
 };
 
-const plock = PromiseLock();
+var plock = PromiseLock({
+	"release_lock": 1000*sc,
+	"timeout_lock": 5000*sc,
+});
 
 test("Execution", async function(t) {
 	t.plan(2);
 
 	t.ok(await plock(async ()=>{
-		t.ok(true);
+		t.ok(true, "inner");
 		return true;
-	}));
+	}), "outer");
 });
 
 test("Locking", async function(t) {
@@ -139,6 +143,7 @@ test("direct lock with timeout", async function(t) {
 		} catch(err) {
 			t.equal(err.code, "ETIMEOUT_LOCK", "exception");
 		}
+		unlock_1();
 	})();
 	var p3 = (async ()=>{
 		try {
@@ -179,6 +184,75 @@ test("Base function, again", async function(t) {
 	t.plan(1);
 
 	t.ok(await plock(async ()=>{ return true; }));
+});
+
+
+test("Release Timeout", async function(t) {
+	t.plan(3);
+	var plock = PromiseLock({
+		"release_lock": 100*sc,
+		"timeout_lock": 500*sc,
+	});
+
+	var p1 = plock(()=>new Promise(()=>{}));
+	p1.then(()=>console.log("close p1"),(err)=>{
+		t.equal(err.code, "ETIMEOUT_RELEASE", "error message release");
+	});
+
+	t.ok(await plock(async ()=>{
+		t.ok(true, "inner");
+		return true;
+	}), "outer");
+});
+
+test("Lock Timeout", async function(t) {
+	t.plan(2);
+	var plock = PromiseLock({
+		"release_lock": 500*sc,
+		"timeout_lock": 100*sc,
+	});
+
+	var p1 = plock(()=>new Promise(()=>{}));
+	p1.then(()=>console.log("close p1"),(err)=>{
+		t.equal(err.code, "ETIMEOUT_RELEASE", "error message release");
+	});
+
+	try {
+		await plock(async ()=>{
+			t.fail();
+			return true;
+		});
+	} catch(err) {
+		t.equal(err.code, "ETIMEOUT_LOCK", "error message lock");
+	}
+	try { await p1; } catch(err) {}
+});
+
+test("Release Timeout of direct mode", async function(t) {
+	t.plan(4);
+	var plock = PromiseLock({
+		"release_lock": 1000*sc,
+		"timeout_lock": 5000*sc,
+	});
+
+	var unlock_1;
+	var p1 = (async ()=>{
+		unlock_1 = await plock();
+		t.ok(1, "step 1");
+		// do not release here
+	})();
+
+	t.ok(await plock(async ()=>{
+		t.ok(true, "inner");
+		return true;
+	}), "outer");
+
+	await p1;
+	try {
+		unlock_1();
+	} catch (err) {
+		t.equal(err.code, "ETIMEOUT_RELEASE_ALREADY", "error message");
+	}
 });
 
 
