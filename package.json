@@ -20,5 +20,12 @@
   "bugs": {
     "url": "https://github.com/simonwalz/node-prolock/issues"
   },
-  "homepage": "https://github.com/simonwalz/node-prolock#readme"
+  "homepage": "https://github.com/simonwalz/node-prolock#readme",
+  "keywords": [
+    "lock",
+	"promise",
+    "async",
+	"mutex",
+	"semaphore"
+  ]
 }
