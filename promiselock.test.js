@@ -1,7 +1,7 @@
 #!/bin/bash
 
 import test from "tape";
-import { PromiseLock } from "./prolock.js";
+import { PromiseLock } from "./promiselock.js";
 
 // scale sleep times:
 var sc = 0.02;

@@ -1,8 +1,6 @@
 
 import { TimeoutPromise } from './timeoutpromise.js';
 
-export { TimeoutPromise } from './timeoutpromise.js';
-
 const debug = ()=>{};
 //const debug = console.debug.bind(console, "[debug]");
 
