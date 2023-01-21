@@ -23,8 +23,11 @@ export function PromiseLock(options) {
 		}
 	}
 
-	return function(callback) {
-		if (typeof callback === "undefined") {
+	return function(callback, timeout) {
+		//options = {...global_options, ...options};
+		if (typeof callback === "undefined" ||
+				typeof callback === "number") {
+			timeout = callback;
 			var _current = current;
 			var resolve_cb = null;
 			// unlock Promise:
@@ -32,22 +35,38 @@ export function PromiseLock(options) {
 				resolve_cb = resolve;
 			});
 			// return Promise based on current with unlock function
-			return new Promise((resolve)=>{
-				_current.then(()=>{
+			return new TimeoutPromise((resolve)=>{
+				_current.finally(()=>{
 					resolve(function unlock() {
 						resolve_cb();
 					});
 				});
-			});
+			}, timeout, resolve_cb);
 		}
+		//is implicit:
 		//if (typeof callback !== "function")
 		//	throw new Error("callback is not a function");
-		current = call(callback, current);
+		/*
+		if (typeof options.pre_timeout === "number") {
+			current = new TimeoutPromise(current);
+		}
+		if (typeof options.exec_timeout === "number") {
+		*/
+		if (typeof timeout === "number") {
+			//current = new TimeoutPromise(current);
+			current = new TimeoutPromise(call(callback, current),
+					timeout);
+		} else {
+			current = call(callback, current);
+		}
 		return current;
 	};
 };
 
 export function TimeoutPromise(promise, timeout, cancel) {
+	if (typeof promise === "function") {
+		promise = new Promise(promise);
+	}
 	if (timeout === undefined) {
 		return promise;
 	}

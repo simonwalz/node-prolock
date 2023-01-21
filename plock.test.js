@@ -88,14 +88,14 @@ test("direct lock", async function(t) {
 
 	var i=0;
 	(async ()=>{
-		var unlock = await plock();
+		var unlock = await plock(1000);
 		t.equal(++i, 1);
 		await sleep(100);
 		t.equal(++i, 2);
 		unlock();
 	})();
 	(async ()=>{
-		var unlock = await plock();
+		var unlock = await plock(2000);
 		t.equal(++i, 3);
 		await sleep(100);
 		t.equal(++i, 4);
@@ -111,6 +111,54 @@ test("direct lock", async function(t) {
 
 	(await plock())();
 });
+
+test("direct lock with timeout", async function(t) {
+	t.plan(4);
+
+	var i=0;
+	var p1 = (async ()=>{
+		var unlock = await plock();
+		t.equal(++i, 1, "1");
+	})();
+	var p2 = (async ()=>{
+		try {
+			var unlock = await plock(100);
+			t.fail();
+		} catch(err) {
+			t.equal(err.message, "Promise Timeout", "exception");
+		}
+	})();
+	var p3 = (async ()=>{
+		try {
+			var unlock = await plock();
+			t.equal(++i, 2, "2");
+			await sleep(100);
+			t.equal(++i, 3, "3");
+			unlock();
+		} catch(err) {
+			t.fail();
+		}
+	})();
+
+	await p3;
+	await p2;
+	await p1;
+});
+test("timeout lock, no timeout", async function(t) {
+	t.plan(1);
+
+	t.ok(await plock(async ()=>{ return true; }, 1000));
+});
+test("timeout lock, timeout", async function(t) {
+	t.plan(1);
+
+	try {
+		await plock(()=>new Promise(()=>{}), 100);
+	} catch (err) {
+		t.equal(err.message, "Promise Timeout");
+	}
+});
+
 test("Base function, again", async function(t) {
 	t.plan(1);
 
@@ -162,7 +210,7 @@ test("Timeout Promise - Timeout", async function(t) {
 
 	try {
 		var v = await TimeoutPromise((async ()=>{
-			await sleep(1000);
+			await sleep(120);
 			return 8;
 		})(), 100);
 	} catch(err) {
@@ -174,7 +222,7 @@ test("Timeout Promise - Timeout Exception", async function(t) {
 
 	try {
 		var v = await TimeoutPromise((async ()=>{
-			await sleep(1000);
+			await sleep(120);
 			throw new Error("ERROR 3");
 		})(), 100);
 	} catch(err) {
