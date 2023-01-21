@@ -1,15 +1,25 @@
 {
   "name": "lock",
   "version": "1.0.0",
-  "type": "module",
+  "description": "Simple execution lock based on Promises.",
   "main": "plock.js",
+  "type": "module",
   "scripts": {
     "test": "tape *.test.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Simon Walz",
+  "license": "MIT",
   "dependencies": {
+  },
+  "devDependencies": {
     "tape": "^5.6.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simonwalz/node-plock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/simonwalz/node-plock/issues"
+  },
+  "homepage": "https://github.com/simonwalz/node-plock#readme"
 }
