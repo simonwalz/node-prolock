@@ -34,11 +34,12 @@ var unlock = await plock();
 unlock();
 ```
 
+To create multiple locks just create an other instance of `PromiseLock`.
 
 ## Usage: plock with Timeout:
 
 Use the following code to lock a execution but with Timeout if we do not get
-a lock. 
+a lock.
 
 ```js
 import { PromiseLock } from "plock";
