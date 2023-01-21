@@ -1,6 +1,6 @@
 {
   "name": "prolock",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Simple execution lock based on Promises.",
   "type": "module",
   "main": "index.js",
@@ -23,9 +23,9 @@
   "homepage": "https://github.com/simonwalz/node-prolock#readme",
   "keywords": [
     "lock",
-	"promise",
+    "promise",
     "async",
-	"mutex",
-	"semaphore"
+    "mutex",
+    "semaphore"
   ]
 }
