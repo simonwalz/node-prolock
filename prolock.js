@@ -6,9 +6,9 @@ const debug = ()=>{};
  * Promise Lock Initialisation
  *
  * @param {object} global_options - Configuration
- * @returns {function} - plock function
+ * @returns {function} - prolock function
  * @example
- * var plock = new PromiseLock();
+ * var prolock = new PromiseLock();
  */
 export function PromiseLock(global_options) {
 	//var requests = [];
@@ -139,12 +139,12 @@ export function PromiseLock(global_options) {
 	 * @param {object} options - Configuration
 	 * @returns {Promise}
 	 * @example
-	 * var result = await plock(async ()=>{
+	 * var result = await prolock(async ()=>{
 	 *     // ...;
 	 *     return "result";
 	 * });
 	 */
-	return function plock(callback, options) {
+	return function prolock(callback, options) {
 		if (typeof callback !== "function") {
 			return usage_direct_lock(callback);
 		}

@@ -5,20 +5,20 @@ Simple execution lock based on Promises.
 ## Install & Usage
 
 ```sh
-npm install plock
+npm install prolock
 ```
 
-## Usage: plock
+## Usage: prolock
 
 The following code allows to lock a execution:
 
 ```js
-import { PromiseLock } from "plock";
+import { PromiseLock } from "prolock";
 
-var plock = PromiseLock();
+var prolock = PromiseLock();
 
 // in function
-var result = await plock(async ()=>{
+var result = await prolock(async ()=>{
 	// execution to lock
 	return "result";
 });
@@ -28,7 +28,7 @@ and/or:
 
 ```js
 // in function
-var unlock = await plock();
+var unlock = await prolock();
 // execution to lock
 // ...
 unlock();
@@ -36,21 +36,21 @@ unlock();
 
 To create multiple locks just create an other instance of `PromiseLock`.
 
-## Usage: plock with Timeout:
+## Usage: prolock with Timeout:
 
 Use the following code to lock a execution but with Timeout if we do not get
 a lock.
 
 ```js
-import { PromiseLock } from "plock";
+import { PromiseLock } from "prolock";
 
-var plock = PromiseLock({ // global options:
+var prolock = PromiseLock({ // global options:
 	"timeout_lock": 3000,
 	"release_lock": 4000
 });
 
 // in function
-var result = await plock(async ()=>{
+var result = await prolock(async ()=>{
 	// execution to lock
 	return "result";
 }, {
@@ -64,7 +64,7 @@ and/or:
 
 ```js
 // in function
-var unlock = await plock({
+var unlock = await prolock({
 	"timeout_lock": 1000,
 	"release_lock": 2000
 });
@@ -75,11 +75,11 @@ unlock();
 
 ## Functions
 
-Usage: **plock**(callback: *function*, options: *object*) -> *Promise*
+Usage: **prolock**(callback: *function*, options: *object*) -> *Promise*
 
-Usage: **plock**(options: *object*) -> *unlock function*
+Usage: **prolock**(options: *object*) -> *unlock function*
 
-Usage: **PromiseLock**(options: *object*) -> **plock** *function*
+Usage: **PromiseLock**(options: *object*) -> **prolock** *function*
 
 ### Parameter
 
