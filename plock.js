@@ -19,17 +19,7 @@ export function PromiseLock(global_options) {
 		return {...global_options, ...options};
 	}
 
-	async function call(callback, last, options) {
-		try {
-			await last;
-		} catch (err) {
-			if (err.code === "ETIMEOUT_LOCK") {
-				err.message = "PromiseLock: " +
-						"Could not lock (Timeout)";
-				//unless DONT FAIL ON TIMEOUT
-				throw err;
-			}
-		}
+	async function do_action(callback, options) {
 		try {
 			// do not do (we want to fail, if it is not a promise)
 			//return await Promise.resolve(callback());
@@ -39,41 +29,129 @@ export function PromiseLock(global_options) {
 		} catch(err) {
 			throw err;
 		}
+
+	}
+
+	async function get_lock(lock, options) {
+		lock = new TimeoutPromise(lock, options.timeout_lock, "_LOCK");
+		try {
+			await lock;
+		} catch (err) {
+			//unless NO FAIL ON TIMEOUT
+			if (err.code === "ETIMEOUT_LOCK" &&
+					!options.no_fail_on_timeout) {
+				return false;
+				err.message = "PromiseLock: " +
+						"Could not lock (Timeout)";
+				throw err;
+			}
+		}
+		return true;
+	};
+
+	async function call(callback, lock, options) {
+		r = async ()=>{
+			await lock_timeout(lock, options);
+			return await do_action(callback, options);
+		};
+		current = async ()=>{
+			try {
+				await lock;
+			} catch (err) {}
+			try {
+				await r;
+			} catch (err) {
+			}
+		};
+		return r;
+	}
+
+	function usage_direct_lock(options) {
+		options = parse_options(options);
+
+		callback = async ()=>{
+			var resolve_cb = null;
+			return new Promise((resolve)=>{
+				resolve_cb = resolve;
+			});
+			var unlock() {
+				resolve_cb();
+			}
+			return unlock;
+		};
+
+		return call(callback, current, options);
+
+
+		var _current = current;
+		var timeout = false;
+
+		// execution / unlock Promise:
+		var resolve_cb = null;
+		current = new Promise((resolve)=>{
+			resolve_cb = resolve;
+		});
+		// return lock promise. This is based on current
+		// with and resolves in a unlock function for the
+		// execution
+		var unlock() {
+			if (timeout) {
+				throw new Error("Promise Lock:"+
+						" Already released by Timeout");
+			}
+			resolve_cb();
+		};
+		current = new TimeoutPromise(current, options.timeout_lock,
+				"_LOCK");
+		return current.then(async ()=>unlock, async ()=>unlock);
+
+		return TimeoutPromise((resolve)=>{
+			_current.finally(()=>{
+				resolve(function unlock() {
+					if (timeout) {
+						throw new Error("Promise Lock:"+
+						" Already released by Timeout");
+					}
+					resolve_cb();
+				});
+			});
+		}, options.timeout_lock, "_LOCK", ()=>{
+			resolve_cb();
+			timeout = true;
+		});
+		return async()=>{
+			try {
+				await last;
+			} catch (err) {
+				//unless NO FAIL ON TIMEOUT
+				if (err.code === "ETIMEOUT_LOCK" &&
+						!options.no_fail_on_timeout) {
+					err.message = "PromiseLock: " +
+							"Could not lock (Timeout)";
+					throw err;
+				}
+			}
+
+
+		};
 	}
 
 	return function(callback, options) {
 		if (typeof callback !== "function") {
-			options = parse_options(callback);
-			var _current = current;
-
-			// execution / unlock Promise:
-			var resolve_cb = null;
-			current = new Promise((resolve)=>{
-				resolve_cb = resolve;
-			});
-			// return lock promise. This is based on current
-			// with and resolves in a unlock function for the
-			// execution
-			return TimeoutPromise((resolve)=>{
-				_current.finally(()=>{
-					resolve(function unlock() {
-						resolve_cb();
-					});
-				});
-			}, options.timeout_lock, "_LOCK", resolve_cb);
+			return usage_direct_lock(callback);
 		}
 		options = parse_options(options);
 
+/*
 		// only if timeout_lock
 		current = new TimeoutPromise(current, options.timeout_lock,
 				"_LOCK");
 
-		current = call(callback, current, options),
+		current = call(callback, current, options);
 
-		// only if total_timeout
-		current = new TimeoutPromise(current, options.total_timeout,
-				"_TOTAL");
 		return current;
+*/
+		return call(callback, current, options);
 	};
 };
 

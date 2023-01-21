@@ -3,6 +3,9 @@
 import test from "tape";
 import { PromiseLock, TimeoutPromise } from "./plock.js";
 
+// scale sleep times:
+var sc = 0.02;
+
 function sleep(ms) {
 	return new Promise((resolve)=>{
 		setTimeout(resolve, ms);
@@ -26,19 +29,19 @@ test("Locking", async function(t) {
 	var i = 0;
 	var p1 = plock(async ()=>{
 		t.equal(++i, 1);
-		await sleep(100);
+		await sleep(100*sc);
 		t.equal(++i, 2);
 		return true;
 	});
 	var p2 = plock(async ()=>{
 		t.equal(++i, 3);
-		await sleep(100);
+		await sleep(100*sc);
 		t.equal(++i, 4);
 		return true;
 	});
 	var p3 = plock(async ()=>{
 		t.equal(++i, 5);
-		await sleep(100);
+		await sleep(100*sc);
 		t.equal(++i, 6);
 		return true;
 	});
@@ -90,26 +93,26 @@ test("direct lock", async function(t) {
 	var i=0;
 	(async ()=>{
 		var unlock = await plock({
-			"timeout_lock": 1000
+			"timeout_lock": 1000*sc
 		});
 		t.equal(++i, 1);
-		await sleep(100);
+		await sleep(100*sc);
 		t.equal(++i, 2);
 		unlock();
 	})();
 	(async ()=>{
 		var unlock = await plock({
-			"timeout_lock": 2000
+			"timeout_lock": 2000*sc
 		});
 		t.equal(++i, 3);
-		await sleep(100);
+		await sleep(100*sc);
 		t.equal(++i, 4);
 		unlock();
 	})();
 	(async ()=>{
 		var unlock = await plock();
 		t.equal(++i, 5);
-		await sleep(100);
+		await sleep(100*sc);
 		t.equal(++i, 6);
 		unlock();
 	})();
@@ -130,7 +133,7 @@ test("direct lock with timeout", async function(t) {
 	var p2 = (async ()=>{
 		try {
 			var unlock = await plock({
-				"timeout_lock": 100
+				"timeout_lock": 100*sc
 			});
 			t.fail();
 		} catch(err) {
@@ -141,7 +144,7 @@ test("direct lock with timeout", async function(t) {
 		try {
 			var unlock = await plock();
 			t.equal(++i, 2, "2");
-			await sleep(100);
+			await sleep(100*sc);
 			t.equal(++i, 3, "3");
 			unlock();
 		} catch(err) {
@@ -157,7 +160,7 @@ test("timeout lock, no timeout", async function(t) {
 	t.plan(1);
 
 	t.ok(await plock(async ()=>{ return true; }, {
-		"release_lock": 1000,
+		"release_lock": 1000*sc,
 	}));
 });
 test("timeout lock, timeout", async function(t) {
@@ -165,7 +168,7 @@ test("timeout lock, timeout", async function(t) {
 
 	try {
 		await plock(()=>new Promise(()=>{}), {
-			"release_lock": 100
+			"release_lock": 100*sc
 		});
 	} catch (err) {
 		t.equal(err.code, "ETIMEOUT_RELEASE", "exception");
@@ -186,7 +189,7 @@ test("Timeout Promise - No Timeout", async function(t) {
 	t.plan(1);
 
 	var v = await TimeoutPromise((async ()=>{
-		await sleep(10);
+		await sleep(10*sc);
 		return 8;
 	})());
 	t.equal(v, 8);
@@ -196,9 +199,9 @@ test("Timeout Promise - Base", async function(t) {
 	t.plan(1);
 
 	var v = await TimeoutPromise((async ()=>{
-		await sleep(10);
+		await sleep(10*sc);
 		return 8;
-	})(), 100);
+	})(), 100*sc);
 	t.equal(v, 8);
 });
 test("Timeout Promise - Base 2", async function(t) {
@@ -206,7 +209,7 @@ test("Timeout Promise - Base 2", async function(t) {
 
 	var v = await TimeoutPromise(new Promise((resolve)=>{
 		resolve(8);
-	}), 100);
+	}), 100*sc);
 	t.equal(v, 8);
 });
 test("Timeout Promise - Exception", async function(t) {
@@ -214,9 +217,9 @@ test("Timeout Promise - Exception", async function(t) {
 
 	try {
 		var v = await TimeoutPromise((async ()=>{
-			await sleep(10);
+			await sleep(10*sc);
 			throw new Error("ERROR 3");
-		})(), 100);
+		})(), 100*sc);
 	} catch(err) {
 		t.equal(err.message, "ERROR 3");
 	}
@@ -227,9 +230,9 @@ test("Timeout Promise - Timeout", async function(t) {
 
 	try {
 		var v = await TimeoutPromise((async ()=>{
-			await sleep(120);
+			await sleep(200*sc);
 			return 8;
-		})(), 100);
+		})(), 20*sc);
 	} catch(err) {
 		t.equal(err.message, "Promise Timeout");
 	}
@@ -239,9 +242,9 @@ test("Timeout Promise - Timeout Exception", async function(t) {
 
 	try {
 		var v = await TimeoutPromise((async ()=>{
-			await sleep(120);
+			await sleep(200*sc);
 			throw new Error("ERROR 3");
-		})(), 100);
+		})(), 20*sc);
 	} catch(err) {
 		t.equal(err.message, "Promise Timeout");
 	}
@@ -252,6 +255,6 @@ test("Combination", async function(t) {
 
 	var v = await TimeoutPromise(plock(async ()=>{
 		return 8;
-	}), 100);
+	}), 100*sc);
 	t.equal(v, 8);
 });
