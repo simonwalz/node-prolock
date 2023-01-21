@@ -1,8 +1,8 @@
 {
-  "name": "plock",
+  "name": "prolock",
   "version": "1.0.0",
   "description": "Simple execution lock based on Promises.",
-  "main": "plock.js",
+  "main": "prolock.js",
   "type": "module",
   "scripts": {
     "test": "tape *.test.js"
@@ -16,10 +16,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonwalz/node-plock.git"
+    "url": "git+https://github.com/simonwalz/node-prolock.git"
   },
   "bugs": {
-    "url": "https://github.com/simonwalz/node-plock/issues"
+    "url": "https://github.com/simonwalz/node-prolock/issues"
   },
-  "homepage": "https://github.com/simonwalz/node-plock#readme"
+  "homepage": "https://github.com/simonwalz/node-prolock#readme"
 }
