@@ -11,9 +11,9 @@
   "author": "Simon Walz",
   "license": "MIT",
   "dependencies": {
-    "jsdoc-to-markdown": "^8.0.0"
   },
   "devDependencies": {
+    "jsdoc-to-markdown": "^8.0.0",
     "tape": "^5.6.3"
   },
   "repository": {
