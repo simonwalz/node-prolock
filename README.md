@@ -1,6 +1,6 @@
 # Promise Lock for Node.js
 
-Simple execution lock based on Promises.
+Simple execution lock based on Promises
 
 ## Install & Usage
 
