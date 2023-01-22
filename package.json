@@ -1,6 +1,6 @@
 {
   "name": "prolock",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Simple execution lock based on Promises.",
   "type": "module",
   "main": "index.js",
@@ -10,8 +10,7 @@
   },
   "author": "Simon Walz",
   "license": "MIT",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "jsdoc-to-markdown": "^8.0.0",
     "tape": "^5.6.3"
