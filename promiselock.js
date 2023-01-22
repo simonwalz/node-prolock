@@ -133,7 +133,7 @@ export function PromiseLock(global_options) {
 		return {...global_options, ...options};
 	}
 
-	async function do_action(callback, options) {
+	async function run_action(callback, options) {
 		try {
 			// do not do (we want to fail, if it is not a promise)
 			//return await Promise.resolve(callback());
@@ -166,7 +166,7 @@ export function PromiseLock(global_options) {
 		var r = (async ()=>{
 			await get_lock_timeout(lock, options);
 			debug("return: got lock");
-			var a = await do_action(callback, options);
+			var a = await run_action(callback, options);
 			debug("return: got result", a);
 			return a;
 		})();
