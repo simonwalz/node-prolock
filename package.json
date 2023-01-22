@@ -1,6 +1,6 @@
 {
   "name": "prolock",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Simple execution lock based on Promises.",
   "type": "module",
   "main": "index.js",
