@@ -91,14 +91,16 @@ Usage: **PromiseLock**(options: *object*) -> **prolock** *function*
 | options.release_lock | `number` | Timeout in ms for release of own execution to release lock |
 | options.no\_fail\_on\_timeout | `boolean` | Continue execution after failed getting lock |
 
+Detailed command reference: [API](API.md)
+
 ### Exceptions
 
 | Message | Code | Description |
 |---|----|---|
-| Promise Lock: Could not get lock (Timeout) | `ETIMEOUT_LOCK` | Timed out on getting Lock. See param *timeout_lock* |
-| Promise Lock: Timeout released lock | `ETIMEOUT_RELEASE` | Timed out on execution. See param *release_lock* |
-| Promise Lock: Argument options invalid | `EINVALID_OPTIONS` | Given argument options is invalid |
-| Promise Lock: Already unlocked by Timeout | `ETIMEOUT_UNLOCK` | Unlock function was called, but lock was already timed out |
+| Promise Lock: Could not get lock (Timeout) | `ETIMEOUTLOCK` | Timed out on getting Lock. See param *timeout_lock* |
+| Promise Lock: Timeout released lock | `ETIMEOUTRELEASE` | Timed out on execution. See param *release_lock* |
+| Promise Lock: Argument options invalid | `EINVALIDOPTIONS` | Given argument options is invalid |
+| Promise Lock: Already unlocked by Timeout | `ETIMEOUTUNLOCK` | Unlock function was called, but lock was already timed out |
 
 
 ## License

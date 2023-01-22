@@ -4,38 +4,75 @@ import { TimeoutPromise } from './timeoutpromise.js';
 const debug = ()=>{};
 //const debug = console.debug.bind(console, "[debug]");
 
+/**
+ * LockError
+ *
+ * Could not get lock (Timeout)
+ * @property {string} code - is ETIMEOUTLOCK
+ * @property {number} timeout - Timeout in ms
+ */
 class LockError extends Error {
 	constructor(timeout) {
 		super("Promise Lock: Could not get lock (Timeout)");
-		this.code = "ETIMEOUT_LOCK";
+		this.code = "ETIMEOUTLOCK";
 		this.timeout = timeout;
-	}
-};
-class ReleaseError extends Error {
-	constructor(timeout) {
-		super("Promise Lock: Timeout released lock");
-		this.code = "ETIMEOUT_RELEASE";
-		this.timeout = timeout;
-	}
-};
-class UnlockError extends Error {
-	constructor() {
-		super("Promise Lock: Already unlocked by Timeout");
-		this.code = "ETIMEOUT_UNLOCK";
-	}
-};
-class InvalidOptionsError extends Error {
-	constructor() {
-		super("Promise Lock: Argument options invalid");
-		this.code = "EINVALID_OPTIONS";
 	}
 };
 
 /**
+ * ReleaseError
+ *
+ * Timeout released lock
+ * @property {string} code - is ETIMEOUTRELEASE
+ * @property {number} timeout - Timeout in ms
+ */
+class ReleaseError extends Error {
+	constructor(timeout) {
+		super("Promise Lock: Timeout released lock");
+		this.code = "ETIMEOUTRELEASE";
+		this.timeout = timeout;
+	}
+};
+
+/**
+ * UnlockError
+ *
+ * Already unlocked by Timeout
+ * @property {string} code - is ETIMEOUTUNLOCK
+ */
+class UnlockError extends Error {
+	constructor() {
+		super("Promise Lock: Already unlocked by Timeout");
+		this.code = "ETIMEOUTUNLOCK";
+	}
+};
+/**
+ * InvalidOptionsError
+ *
+ * Argument options invalid
+ * @property {string} code - is EINVALIDOPTIONS
+ */
+class InvalidOptionsError extends Error {
+	constructor() {
+		super("Promise Lock: Argument options invalid");
+		this.code = "EINVALIDOPTIONS";
+	}
+};
+
+/**
+ * Options
+ *
+ * @typedef {Object} Options
+ * @property {number} [timeout_lock] - Timeout in ms for getting lock
+ * @property {number} [release_lock] - Timeout in ms for release of own execution to release lock
+ * @property {boolean} [no_fail_on_timeout] - Continue execution after failed getting lock
+ */
+
+/**
  * Promise Lock Initialisation
  *
- * @param {object} global_options - Configuration
- * @returns {function} - prolock function
+ * @param {Options} [global_options] - Configuration
+ * @returns {prolock} prolock function
  * @example
  * var prolock = new PromiseLock();
  */
@@ -45,6 +82,44 @@ export function PromiseLock(global_options) {
 	if (typeof global_options !== "object" || global_options === null) {
 		global_options = {};
 	}
+
+	/**
+	 * Promise Lock
+	 *
+	 * @name prolock
+	 * @param {function} callback - Async work function to lock
+	 * @param {Options} [options] - Configuration
+	 * @returns {Promise}
+	 * @throws {LockError} Lock Error
+	 * @throws {ReleaseError} Release Error
+	 * @example
+	 * var prolock = new PromiseLock();
+	 * var result = await prolock(async ()=>{
+	 *     // ...;
+	 *     return "result";
+	 * });
+	 */
+	/**
+	 * Promise Lock
+	 *
+	 * @name prolock
+	 * @param {Options} [options] - Configuration
+	 * @returns {unlock} Unlock function.
+	 * @throws {LockError} Lock Error
+	 * @example
+	 * var prolock = new PromiseLock();
+	 * var unlock = await prolock();
+	 * // ...;
+	 * unlock();
+	 */
+	function prolock(callback, options) {
+		if (typeof callback !== "function") {
+			return usage_direct_lock(callback);
+		}
+		options = parse_options(options);
+
+		return wait_and_run(callback, current, options);
+	};
 
 	function parse_options(options) {
 		if (typeof options === "number") {
@@ -78,7 +153,7 @@ export function PromiseLock(global_options) {
 			await lock;
 		} catch (err) {
 			//unless NO FAIL ON TIMEOUT
-			if (err.code === "ETIMEOUT_LOCK" &&
+			if (err.code === "ETIMEOUTLOCK" &&
 					!options.no_fail_on_timeout) {
 				debug("lock: timed out");
 				throw err;
@@ -103,7 +178,7 @@ export function PromiseLock(global_options) {
 			try {
 				await r;
 			} catch (err) {
-				if (err.code === "ETIMEOUT_LOCK") {
+				if (err.code === "ETIMEOUTLOCK") {
 					debug("timed out");
 					return false;
 				}
@@ -142,6 +217,13 @@ export function PromiseLock(global_options) {
 			var timed_out = false;
 			p.catch(()=>{ timed_out = true; });
 			debug("unlock: init");
+			/**
+			 * Unlock function
+			 *
+			 * @name unlock
+			 * @type {function}
+			 * @throws {UnlockError} Unlock Error
+			 */
 			return function unlock() {
 				debug("unlock: unlock");
 				resolve_cb();
@@ -156,25 +238,6 @@ export function PromiseLock(global_options) {
 		return r;
 	}
 
-	/**
-	 * Promise Lock
-	 *
-	 * @param {function} [callback] - Async work function to lock
-	 * @param {object} options - Configuration
-	 * @returns {Promise}
-	 * @example
-	 * var result = await prolock(async ()=>{
-	 *     // ...;
-	 *     return "result";
-	 * });
-	 */
-	return function prolock(callback, options) {
-		if (typeof callback !== "function") {
-			return usage_direct_lock(callback);
-		}
-		options = parse_options(options);
-
-		return wait_and_run(callback, current, options);
-	};
+	return prolock;
 };
 

@@ -69,7 +69,7 @@ test("Argument check: callback | options", async function(t) {
 		await prolock("invalid");
 	} catch(err) {
 		t.equal(err.message, "Promise Lock: Argument options invalid", "error message");
-		t.equal(err.code, "EINVALID_OPTIONS", "error code");
+		t.equal(err.code, "EINVALIDOPTIONS", "error code");
 	}
 });
 test("Argument check: callback return", async function(t) {
@@ -144,7 +144,7 @@ test("direct lock with timeout", async function(t) {
 		} catch(err) {
 			t.equal(err.message, "Promise Lock: Could not get "+
 					"lock (Timeout)", "exception message");
-			t.equal(err.code, "ETIMEOUT_LOCK", "exception code");
+			t.equal(err.code, "ETIMEOUTLOCK", "exception code");
 		}
 		unlock_1();
 	})();
@@ -181,7 +181,7 @@ test("timeout lock, timeout", async function(t) {
 	} catch (err) {
 		t.equal(err.message, "Promise Lock: Timeout released lock",
 				"exception message");
-		t.equal(err.code, "ETIMEOUT_RELEASE", "exception code");
+		t.equal(err.code, "ETIMEOUTRELEASE", "exception code");
 	}
 });
 
@@ -201,7 +201,7 @@ test("Release Timeout", async function(t) {
 
 	var p1 = prolock(()=>new Promise(()=>{}));
 	p1.then(()=>console.log("close p1"),(err)=>{
-		t.equal(err.code, "ETIMEOUT_RELEASE", "error message release");
+		t.equal(err.code, "ETIMEOUTRELEASE", "error message release");
 	});
 
 	t.ok(await prolock(async ()=>{
@@ -219,7 +219,7 @@ test("Lock Timeout", async function(t) {
 
 	var p1 = prolock(()=>new Promise(()=>{}));
 	p1.then(()=>console.log("close p1"),(err)=>{
-		t.equal(err.code, "ETIMEOUT_RELEASE", "error message release");
+		t.equal(err.code, "ETIMEOUTRELEASE", "error message release");
 	});
 
 	try {
@@ -228,7 +228,7 @@ test("Lock Timeout", async function(t) {
 			return true;
 		});
 	} catch(err) {
-		t.equal(err.code, "ETIMEOUT_LOCK", "error message lock");
+		t.equal(err.code, "ETIMEOUTLOCK", "error message lock");
 	}
 	try { await p1; } catch(err) {}
 });
@@ -258,6 +258,6 @@ test("Release Timeout of direct mode", async function(t) {
 	} catch (err) {
 		t.equal(err.message, "Promise Lock: Already unlocked by "+
 				"Timeout", "error message");
-		t.equal(err.code, "ETIMEOUT_UNLOCK", "error code");
+		t.equal(err.code, "ETIMEOUTUNLOCK", "error code");
 	}
 });
