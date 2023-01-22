@@ -153,7 +153,8 @@ export function PromiseLock(global_options) {
 			await lock;
 		} catch (err) {
 			//unless NO FAIL ON TIMEOUT
-			if (err.code === "ETIMEOUTLOCK") {
+			if (err.code === "ETIMEOUTLOCK" &&
+					!options.no_fail_on_timeout) {
 				debug("lock: timed out");
 				throw err;
 			}
