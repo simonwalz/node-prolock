@@ -16,6 +16,9 @@
     "jsdoc-to-markdown": "^8.0.0",
     "tape": "^5.6.3"
   },
+  "release": {
+    "branches": ["master", "next"]
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/simonwalz/node-prolock.git"
