@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "jsdoc-to-markdown": "^8.0.0",
+    "jsdoc-to-markdown": "^9.0.0",
     "tape": "^5.6.3"
   },
   "release": {
