@@ -1,6 +1,6 @@
 {
   "name": "prolock",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Simple execution lock based on Promises.",
   "type": "module",
   "main": "index.js",
@@ -17,7 +17,10 @@
     "tape": "^5.9.0"
   },
   "release": {
-    "branches": ["master", "next"]
+    "branches": [
+      "master",
+      "next"
+    ]
   },
   "repository": {
     "type": "git",
